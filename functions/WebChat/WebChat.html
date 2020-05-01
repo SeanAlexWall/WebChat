@@ -10,15 +10,36 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-  <!-- My CSS-->
-  <link rel="stylesheet" href="css/my.css">
-
   <title>Product Admin</title>
 </head>
 
-<body>
+<body style="background-color: #d1e8e2">
 
-  <h1 class="display-5" style="background-color: blue; color: white;">Product Admin's Page</h1>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <span class="border border-white  rounded">
+      <a class="navbar-brand" href="/" style="margin:auto; padding: 10px">WebChat</a>
+    </span>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About Us</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login">Sign in to Web</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/download">Download Desktop</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+
+  <!--All page content on front end goes in 'page_content'-->
   <div class="jumbotron" id="page_content"></div>
 
   <!-- ++++++++++++++++++++++++++++++++FIREBASE+++++++++++++++++++++++++++++++++++++++ -->
@@ -43,33 +64,34 @@
   <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
   <!--Add source js here-->
+  <script src="frontend/home_page.js"></script>
+  <script src="frontend/about_page.js"></script>
+  <script src="frontend/login_page.js"></script>
+  <script src="frontend/download_page.js"></script>
 
+  
   <script>
     const gblPageContent = document.getElementById('page_content');
-    const IMAGE_FOLDER = 'products/';
-    const PROF_PIC_FOLDER = 'profile_pictures/';
-    const PROF_COLLECTION = 'profiles'
-    const COLLECTION = 'products';
-    window.onload = function(){
+    window.onload = function () {
       const currentPath = window.location.pathname;
-    //   if(currentPath === '/login'){
-    //     login_page();
-    //   }
-    //   else if(currentPath === '/home'){
-    //     home_page();
-    //   }
-    //   else if(currentPath === '/add'){
-    //     add_page();
-    //   }
-    //   else if(currentPath === '/show'){
-    //     show_page();
-    //   }
-    //   else if(currentPath === '/profile'){
-    //     profile_page();
-    //   }
-    //   else{
-        window.location.href='/';
-    //   }
+      if (currentPath === '/home' || currentPath === '/') {
+        home_page();
+      }
+      else if (currentPath === '/about') {
+        about_page();
+      }
+      else if (currentPath === '/login') {
+        login_page();
+      }
+      else if (currentPath === '/signup') {
+        signup_page();
+      }
+      else if (currentPath === '/download'){
+        download_page();
+      }
+      else {
+        window.location.href = '/';
+      }
     }
   </script>
 

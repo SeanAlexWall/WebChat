@@ -21,26 +21,28 @@ function frontendHandler(request, response) {
 }
 
 //Front end pages******************
-
-
+app.get('/', frontendHandler);
+app.get('/home', frontendHandler);
+app.get('/about', frontendHandler);
+app.get('/login', frontendHandler);
+app.get('/download', frontendHandler);
 
 // *********************************
-
 
 
 //Backend +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const firebase = require('firebase');
 
-// const session = require('express-session');
-// app.use(session({
-//     secret: 'string.lajhfdlskj',
-//     saveUninitialized: false,
-//     resave: false,
-//     secure: true, //https
-//     maxAge: 1000 * 60 * 60 * 24 * 7, //1 week
-//     rolling: true
-// }))
+const session = require('express-session');
+app.use(session({
+    secret: 'string.lajhfdlskj',
+    saveUninitialized: false,
+    resave: false,
+    secure: true, //https
+    maxAge: 1000 * 60 * 60 * 24 * 7, //1 week
+    rolling: true
+}))
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -56,15 +58,109 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
-// const Constants = require('./myconstants.js');
-// const adminUtil = require('./adminUtil.js')
+const Constants = require('./myconstants.js');
+const adminUtil = require('./adminUtil.js')
 
 //Back end pages******************
+app.get('/web/', authAndRedirectSignIn, (req, res)=>{
+    res.render('home.ejs', {user: req.decodedIdToken})
+});
+app.get('/web/signIn', auth, (req, res) => {
+    res.render('signIn.ejs', { error: false, user: req.user});
+})
+app.post('/web/signIn', async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const auth = firebase.auth();
+    try {
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+        const userRecord = await auth.signInWithEmailAndPassword(email, password);
+        const idToken = await userRecord.user.getIdToken();
+        await auth.signOut();
 
-app.get('/', (req, res)=>{
-    res.send(`
-        <H1> WORKING BACK END </H1>
-    `)
+
+        req.session.idToken = idToken;
+        console.log('=============', 'idtoken:', req.session.idToken);
+
+        if (userRecord.user.email === Constants.SYSADMIN_EMAIL) {
+            res.redirect('/admin/sysadmin')
+        }
+        else {
+            res.redirect('/web/');
+        }
+    } catch (e) {
+        console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        res.render('signIn.ejs', { error: JSON.stringify(e), user: null})
+    }
 })
 
+app.get('/web/signOut', async (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.log('++++++++++++++++++++++ SESSION.DESTROY ERROR: ', err);
+            req.session = null;
+            res.send('Error: sign out session.destroy error')
+        }
+        else {
+            res.redirect('/web/')
+        }
+    })
+})
 // *********************************
+
+//Middleware ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+async function authAndRedirectSignIn(req, res, next) {
+    try {
+        const decodedIdToken = await adminUtil.verifyIdToken(req.session.idToken);
+        if (decodedIdToken.uid) {
+            req.decodedIdToken = decodedIdToken;
+            return next()
+        }
+    }
+    catch (e) {
+        console.log('====== authandredirect error:', e)
+    }
+    return res.redirect('/web/signin')
+}
+async function auth(req, res, next) {
+    try {
+        if (req.session.idToken) {
+            const decodedIdToken = await adminUtil.verifyIdToken(req.session.idToken);
+            req.decodedIdToken = decodedIdToken;
+            console.log('************************* ', decodedIdToken);
+        }
+        else {
+            console.log('============================= no session.idToken')
+            req.decodedIdToken = null
+        }
+    }
+    catch (e) {
+        req.decodedIdToken = null
+    }
+    next();
+}
+
+//Admin api
+app.post('/admin/signup', (req, res) => {
+    return adminUtil.createUser(req, res);
+})
+
+app.get('/admin/sysadmin', authSysAdmin, (req, res) => {
+    res.render('admin/sysadmin.ejs');
+})
+
+
+app.get('/admin/listusers', authSysAdmin, (req, res) => {
+    return adminUtil.listUsers(req, res);
+})
+
+
+function authSysAdmin(req, res, next) {
+    const user = firebase.auth().currentUser;
+    if (!user || !user.email || user.email !== Constants.SYSADMIN_EMAIL) {
+        return res.send(`<h1> System Admin Page: Access Denied </h1>`);
+    }
+    else {
+        return next();
+    }
+}

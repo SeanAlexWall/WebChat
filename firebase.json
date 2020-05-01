@@ -5,7 +5,7 @@
     ]
   },
   "hosting": {
-    "public": "functions/prodadmin",
+    "public": "functions/WebChat",
     "ignore": [
       "firebase.json",
       "**/.*",

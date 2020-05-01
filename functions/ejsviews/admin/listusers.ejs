@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <title>System Admin</title>
+</head>
+
+<body>
+    <a href="/admin/sysadmin" class="btn btn-outline-primary">System Admin Home</a>
+
+     <% if (!error) { %>
+        <H1> List of all Users</H1>
+        <br>
+        <%=console.log(users)%>
+        <% users.forEach(u => { %>
+            Email: <%=u.email%>
+            DisplayName: <%=u.displayName%></br>
+            PhoneNumber: <%=u.phoneNumber%></br>
+            <img src="<%=u.photoURL%>"></br></br>   
+        <% }) %>
+
+    <% } else { %>
+        <%=error%>
+    <% } %>
+
+    <%- include('../partials/scripts.ejs') %>
+</body>
+
+</html>
