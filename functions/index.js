@@ -26,7 +26,6 @@ app.get('/home', frontendHandler);
 app.get('/about', frontendHandler);
 app.get('/login', frontendHandler);
 app.get('/download', frontendHandler);
-
 // *********************************
 
 
@@ -62,11 +61,11 @@ const Constants = require('./myconstants.js');
 const adminUtil = require('./adminUtil.js')
 
 //Back end pages******************
-app.get('/web/', authAndRedirectSignIn, (req, res)=>{
-    res.render('home.ejs', {user: req.decodedIdToken})
+app.get('/web/', authAndRedirectSignIn, (req, res) => {
+    res.render('home.ejs', { user: req.decodedIdToken })
 });
 app.get('/web/signIn', auth, (req, res) => {
-    res.render('signIn.ejs', { error: false, user: req.user});
+    res.render('signIn.ejs', { error: false, user: req.user });
 })
 app.post('/web/signIn', async (req, res) => {
     const email = req.body.email;
@@ -90,7 +89,7 @@ app.post('/web/signIn', async (req, res) => {
         }
     } catch (e) {
         console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-        res.render('signIn.ejs', { error: JSON.stringify(e), user: null})
+        res.render('signIn.ejs', { error: JSON.stringify(e), user: null })
     }
 })
 
@@ -106,6 +105,71 @@ app.get('/web/signOut', async (req, res) => {
         }
     })
 })
+
+app.get('/web/signup', (req, res) => {
+    res.render('signup.ejs', { user: null, error: false })
+})
+
+
+
+// /WEB/ROOMS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+app.get('/web/rooms/all', authAndRedirectSignIn, async (req, res) => {
+    const coll = firebase.firestore().collection(Constants.COLL_ROOMS);
+    try {
+        let rooms = [];
+        const snapshot = await coll.orderBy("name").get();
+        snapshot.forEach(doc => {
+            rooms.push({ id: doc.id, data: doc.data() });
+        });
+        res.render("chooseChatRoom.ejs", { user: req.decodedIdToken, error: false, rooms })
+    }
+    catch (e) {
+        res.render("chooseChatRoom.ejs", { user: null, error: e })
+    }
+})
+
+app.get('/web/rooms/chat', authAndRedirectSignIn, async (req, res) => {
+    let roomId = req.query.roomId;
+    const coll = firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES);
+    try {
+        let messages = [];
+        const snapshot = await coll.orderBy("time").get();
+        snapshot.forEach(doc => {
+            messages.push({ id: doc.id, data: doc.data() });
+        });
+        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId })
+    } catch (e) {
+        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId });
+    }
+
+})
+
+app.post('/web/rooms/chat', authAndRedirectSignIn, async (req, res) => {
+    let roomId = req.body.roomId;
+    try {
+        const email = req.decodedIdToken.email;
+        const content = req.body.content;
+        const date = new Date();
+        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES).doc().set({ email, content, time: date })
+    }
+    catch (e) {
+        res.send("Error: chatroom: " + e)
+    }
+    const coll = firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES);
+    try {
+        let messages = [];
+        const snapshot = await coll.orderBy("time").get();
+        snapshot.forEach(doc => {
+            messages.push({ id: doc.id, data: doc.data() });
+        });
+        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId })
+    } catch (e) {
+        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId });
+    }
+
+
+})
+
 // *********************************
 
 //Middleware ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -114,12 +178,14 @@ async function authAndRedirectSignIn(req, res, next) {
         const decodedIdToken = await adminUtil.verifyIdToken(req.session.idToken);
         if (decodedIdToken.uid) {
             req.decodedIdToken = decodedIdToken;
+            console.log('************************* ', decodedIdToken);
             return next()
         }
     }
     catch (e) {
         console.log('====== authandredirect error:', e)
     }
+    console.log('============================= no session.idToken')
     return res.redirect('/web/signin')
 }
 async function auth(req, res, next) {

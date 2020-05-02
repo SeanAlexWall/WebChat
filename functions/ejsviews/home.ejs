@@ -1,7 +1,31 @@
 <html>
-    <body>
-        <h>homepage</h><br>
-        you entered <br>
-        Email: <%= user.email %>
-    </body>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <%- include('partials/header.ejs'); %>
+    <title>Home</title>
+</head>
+
+<body>
+    <%- include('partials/nav.ejs', {user}); %>
+    <span class="container" style="text-align: center;">
+        <h1>Welcome, <%= user.email %>! </h1>
+        <hr>
+        <div class="overflow-auto" style="width: 100%; max-width: 800px; padding: 15px; margin: auto;">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">News!</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Example News Article for WebChat</h6>
+                    <p class="card-text">This wouldn't actually be hard coded in a real setting. 
+                        I just needed something to fill this space, so thought a 'news article' would be cool.</p>
+                    <a href="#" class="card-link">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </span>
+</body>
+
 </html>

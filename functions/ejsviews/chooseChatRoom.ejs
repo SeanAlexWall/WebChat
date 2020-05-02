@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <%- include('partials/header.ejs'); %>
+    <title>ChatRoom</title>
+</head>
+
+<body>
+    
+    <%- include('partials/nav.ejs', {user}) %>
+    <div class="form-chat">
+        <h1>Chat Rooms</h1>
+        <div class="container overflow-auto" style="height: 300px;" id="display">
+            <% if (error) { %>
+                <p style="color: red"><%= error %></p>
+
+            <% } else { %>
+                <% for(let r of rooms) { %>  
+                    <A href="/web/rooms/chat?roomId=<%=r.id%>" class="btn btn-primary"> <%= r.data.name %> </A>
+                    <br><br>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+
+    <%- include('partials/scripts.ejs') %>
+</body>
+
+</html>
