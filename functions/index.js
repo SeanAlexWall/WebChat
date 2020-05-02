@@ -110,7 +110,13 @@ app.get('/web/signup', (req, res) => {
     res.render('signup.ejs', { user: null, error: false })
 })
 
-
+app.get('/web/profile', authAndRedirectSignIn, (req, res) => {
+    if (!req.decodedIdToken)
+        res.redirect('/web/signIn');
+    else {
+        res.render('profile.ejs', { user: req.decodedIdToken})
+    }
+})
 
 // /WEB/ROOMS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 app.get('/web/rooms/all', authAndRedirectSignIn, async (req, res) => {
