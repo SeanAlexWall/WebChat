@@ -42,7 +42,6 @@ async function verifyIdToken(idToken){
     }
 }
 
-
 module.exports = {
     createUser,
     listUsers,

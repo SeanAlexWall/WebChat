@@ -12,22 +12,55 @@
 
 <body>
     <%- include('partials/nav.ejs', {user}) %>
+    <!--Need to change this back to !isJoined once testing is over-->
+    <% if(!isJoined) { %>
+
+    <!-- Automatic trigger modal -->
+    <script>
+        window.onload = function () {
+            $('#joinRoom').modal('show')
+        };                                                    
+    </script>
+    <!-- Modal -->
+    <div class="modal fade" id="joinRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Join Room?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    You are not currently a member of this room. Would you like to join?
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-secondary" href="/web/rooms/all">Cancel</a>
+                    <a class="btn btn-primary" href="/web/rooms/join?roomId=<%=roomId%>">Join</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% }else{ %>
+
     <form class="form-chat" action="/web/rooms/chat" method="POST">
         <h1>Chat</h1>
         <div class="container overflow-auto" style="height: 300px;" id="display">
             <% if (error) { %>
-                <p style="color: red"><%= error %></p>
-        
+            <p style="color: red"><%= error %></p>
+
             <% } else { %>
-                <% for(let m of messages) { %>
-                    <% if(m.data.email == user.email){ %>
-                        <span class="badge badge-pill badge-primary"><%= m.data.email %> :</span>
-                    <% } else {%>
-                        <span class="badge badge-pill badge-success"><%= m.data.email %> :</span>
-                    <% } %>
-                    <%= m.data.content %>
-                    <br>
-                <% } %>
+            <% for(let m of messages) { %>
+            <% if(m.data.email == user.email){ %>
+            <span class="badge badge-pill badge-primary"><%= m.data.email %> :</span>
+            <% } else {%>
+            <span class="badge badge-pill badge-success"><%= m.data.email %> :</span>
+            <% } %>
+            <%= m.data.content %>
+            <br>
+            <% } %>
             <% } %>
         </div>
         <textarea class="form-control" placeholder='<%= user.email %>' name='content'></textarea>
@@ -35,7 +68,7 @@
         <button class='btn btn-primary' type='submit'>Send</button>
     </form>
 
-
+    <% } %>
 
 
 

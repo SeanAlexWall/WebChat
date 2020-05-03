@@ -62,6 +62,7 @@ const adminUtil = require('./adminUtil.js')
 
 //Back end pages******************
 app.get('/web/', authAndRedirectSignIn, (req, res) => {
+    console.log('FFFFFFFFFFFFFFFFFFFFF', req.path);
     res.render('home.ejs', { user: req.decodedIdToken })
 });
 app.get('/web/signIn', auth, (req, res) => {
@@ -114,7 +115,7 @@ app.get('/web/profile', authAndRedirectSignIn, (req, res) => {
     if (!req.decodedIdToken)
         res.redirect('/web/signIn');
     else {
-        res.render('profile.ejs', { user: req.decodedIdToken})
+        res.render('profile.ejs', { user: req.decodedIdToken })
     }
 })
 
@@ -134,18 +135,20 @@ app.get('/web/rooms/all', authAndRedirectSignIn, async (req, res) => {
     }
 })
 
-app.get('/web/rooms/chat', authAndRedirectSignIn, async (req, res) => {
+app.get('/web/rooms/chat', authAndRedirectSignIn, checkIfJoined, async (req, res) => {
+    let isJoined = true;
     let roomId = req.query.roomId;
     const coll = firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES);
+    isJoined = req.isJoined;
     try {
         let messages = [];
         const snapshot = await coll.orderBy("time").get();
         snapshot.forEach(doc => {
             messages.push({ id: doc.id, data: doc.data() });
         });
-        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId })
+        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId, isJoined })
     } catch (e) {
-        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId });
+        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId, isJoined: true });
     }
 
 })
@@ -168,13 +171,23 @@ app.post('/web/rooms/chat', authAndRedirectSignIn, async (req, res) => {
         snapshot.forEach(doc => {
             messages.push({ id: doc.id, data: doc.data() });
         });
-        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId })
+        res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId, isJoined: true })
     } catch (e) {
-        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId });
+        res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId, isJoined: true });
     }
-
-
 })
+
+app.get('/web/rooms/join', auth, async (req, res) => {
+    try {
+        const roomId = req.query.roomId;
+        const user_id = req.decodedIdToken.user_id;
+        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_USERS).doc().set({ user_id })
+        res.redirect(`/web/rooms/chat?roomId=${roomId}`)
+    }
+    catch (e) {
+        console.log('JOIN ERROR: ', e)
+    }
+});
 
 // *********************************
 
@@ -210,6 +223,32 @@ async function auth(req, res, next) {
         req.decodedIdToken = null
     }
     next();
+}
+
+//only used on the GET /web/rooms/chat
+async function checkIfJoined(req, res, next) {
+    try{
+        const roomId = req.query.roomId;
+        let isJoined = false;
+        const userId = req.decodedIdToken.user_id;
+        const coll = firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_USERS);
+        let userList = [];
+        const snapshot = await coll.orderBy("user_id").get();
+        snapshot.forEach(doc => {
+            userList.push({ id: doc.id, data: doc.data() });
+        });
+        for(let userNum of userList){
+            console.log("=============================", userNum);
+            if(userId === userNum.data.user_id){
+                isJoined = true;
+            }
+        }
+        req.isJoined = isJoined;
+        return next();
+    }catch(e){
+        console.log(e);
+        res.send(e);
+    }
 }
 
 //Admin api
