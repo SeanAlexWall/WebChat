@@ -168,6 +168,18 @@ app.get('/web/rooms/all', authAndRedirectSignIn, async (req, res) => {
     }
 })
 
+app.post('/web/rooms/create', authAndRedirectSignIn, async (req, res)=>{
+    try{
+        const name = req.body.name;
+        const modId = req.decodedIdToken.user_id;
+        await firebase.firestore().collection(Constants.COLL_ROOMS).doc().set({ name, modId })
+        res.redirect('/web/rooms/all');
+    }catch(e){
+        console.log("Error: /web/rooms/create: ", e);
+        res.render('chooseChatRoom.ejs', {user: req.decodedIdToken, error: e});
+    }
+})
+
 app.get('/web/rooms/chat', authAndRedirectSignIn, checkIfJoined, async (req, res) => {
     let isJoined = true;
     let roomId = req.query.roomId;
