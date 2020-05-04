@@ -13,30 +13,25 @@
 <body>
     <%- include('partials/nav.ejs', {user}) %>
     <h1>Profile</h1>
-
+    
     <table class="table table-stripped">
 
         <tr>
             <td>Display Name</td>
-            <td><%=user.name %></td>
-        </tr>
-        <tr>
-            <td>Email</td>
-            <td><%=user.email %></td>
-        </tr>
-        <tr>
-            <td>PhoneNumber</td>
-            <td><%=user.phone_number %></td>
+            <td><%=user.displayName %></td>
         </tr>
         <tr>
             <td>User ID</td>
             <td><%=user.uid %></td>
         </tr>
-
         <tr>
+            <td>Bio</td>
+            <td><%=user.bio %></td>
+        </tr>
+        <!-- <tr>
             <td>Prfile Image</td>
             <td><img src="<%=user.picture%>" ></td>
-        </tr>
+        </tr> -->
 
     </table>
     <%- include('partials/scripts.ejs') %>

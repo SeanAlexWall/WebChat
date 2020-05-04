@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <%- include('partials/header.ejs'); %>
+    <title>Set Up Profile</title>
+</head>
+
+<body>
+    <form class="form-signin" action="/web/setProfile" method="POST">
+        <h3>Set Up Profile</h3>
+        <% if(error){ %>
+            <p style="color: red"><%= error %></p>
+        <% } %>
+        Display Name: <input type="text" class="form-control" name="displayName" value="<%=email%>">
+        Bio: <input type="text" class="form-control" name="bio" value="">
+        <input type="hidden" class="form-control" name="uid" value="<%=uid%>">
+        <button type="submit" class="btn btn-primary" >Finish</button>
+    </form>
+
+
+    <%- include('partials/scripts.ejs') %>
+</body>
+
+</html>

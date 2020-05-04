@@ -61,9 +61,13 @@ const Constants = require('./myconstants.js');
 const adminUtil = require('./adminUtil.js')
 
 //Back end pages******************
-app.get('/web/', authAndRedirectSignIn, (req, res) => {
+app.get('/web/', authAndRedirectSignIn, getScreenName, (req, res) => {
     console.log('FFFFFFFFFFFFFFFFFFFFF', req.path);
-    res.render('home.ejs', { user: req.decodedIdToken })
+    if(!req.displayName){
+        res.render('setUpProfile', {uid: req.decodedIdToken.user_id, email: req.decodedIdToken.email, error: false})
+    }else{
+        res.render('home.ejs', { user: req.decodedIdToken, displayName: req.displayName })
+    }
 });
 app.get('/web/signIn', auth, (req, res) => {
     res.render('signIn.ejs', { error: false, user: req.user });
@@ -102,7 +106,7 @@ app.get('/web/signOut', async (req, res) => {
             res.send('Error: sign out session.destroy error')
         }
         else {
-            res.redirect('/web/')
+            res.redirect('/')
         }
     })
 })
@@ -111,11 +115,40 @@ app.get('/web/signup', (req, res) => {
     res.render('signup.ejs', { user: null, error: false })
 })
 
-app.get('/web/profile', authAndRedirectSignIn, (req, res) => {
+app.post("/web/setProfile", auth, async (req, res) => {
+    try{
+        const uid = req.body.uid;
+        const displayName = req.body.displayName;
+        const bio = req.body.bio;
+        console.log('in setProfile')
+        await firebase.firestore().collection(Constants.COLL_PROFILES).doc().set({ uid, displayName, bio })
+        if(req.decodedIdToken){
+            res.redirect('/web/');
+        }else{
+            res.render('signIn.ejs', {user: false, error: 'Account created! Sign in please!'});
+        }
+    }catch(e){
+        console.log('Setprofile: ', e);
+    }
+})
+
+app.get('/web/profile', authAndRedirectSignIn, async (req, res) => {
     if (!req.decodedIdToken)
         res.redirect('/web/signIn');
     else {
-        res.render('profile.ejs', { user: req.decodedIdToken })
+        const uid = req.decodedIdToken.user_id;
+        try{
+            snapshot = await firebase.firestore().collection(Constants.COLL_PROFILES).where("uid", "==", uid).get();
+            let user;
+            snapshot.forEach((doc)=>{
+                user = doc.data();
+            })
+            console.log(user);
+            res.render('profile.ejs', { user })
+        }catch(e){
+            console.log('ERROR - WEB/PROFILE: ', e);
+        }
+       
     }
 })
 
@@ -251,6 +284,24 @@ async function checkIfJoined(req, res, next) {
     }
 }
 
+async function getScreenName(req, res, next){
+    const uid = req.decodedIdToken.user_id;
+    try{
+        snapshot = await firebase.firestore().collection(Constants.COLL_PROFILES).where("uid", "==", uid).get();
+        let user;
+        snapshot.forEach((doc)=>{
+            user = doc.data();
+        })
+        console.log('SSSSSSSSSSSSSSSSSSSSS',user);
+        if(user){
+            req.displayName = user.displayName;
+        }
+        return next();
+    }catch(e){
+        console.log('ERROR - getscreenname: ', e);
+    }
+}
+
 //Admin api
 app.post('/admin/signup', (req, res) => {
     return adminUtil.createUser(req, res);
@@ -264,6 +315,7 @@ app.get('/admin/sysadmin', authSysAdmin, (req, res) => {
 app.get('/admin/listusers', authSysAdmin, (req, res) => {
     return adminUtil.listUsers(req, res);
 })
+
 
 
 function authSysAdmin(req, res, next) {
