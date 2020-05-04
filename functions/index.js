@@ -61,12 +61,12 @@ const Constants = require('./myconstants.js');
 const adminUtil = require('./adminUtil.js')
 
 //Back end pages******************
-app.get('/web/', authAndRedirectSignIn, getScreenName, (req, res) => {
+app.get('/web/', authAndRedirectSignIn, getUserProfile, (req, res) => {
     console.log('FFFFFFFFFFFFFFFFFFFFF', req.path);
-    if(!req.displayName){
+    if(!req.userProfile){
         res.render('setUpProfile', {uid: req.decodedIdToken.user_id, email: req.decodedIdToken.email, error: false})
     }else{
-        res.render('home.ejs', { user: req.decodedIdToken, displayName: req.displayName })
+        res.render('home.ejs', { user: req.decodedIdToken, userProfile: req.userProfile })
     }
 });
 app.get('/web/signIn', auth, (req, res) => {
@@ -234,6 +234,10 @@ app.get('/web/rooms/join', auth, async (req, res) => {
     }
 });
 
+app.get('/test', authAndRedirectSignIn, getUserProfile, (req, res)=>{
+    res.send(`<h1> Test Complete </h1>`);
+})
+
 // *********************************
 
 //Middleware ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -311,6 +315,30 @@ async function getScreenName(req, res, next){
         return next();
     }catch(e){
         console.log('ERROR - getscreenname: ', e);
+    }
+}
+async function getUserProfile(req, res, next){
+    const uid = req.decodedIdToken.user_id;
+    try{
+        userSnapshot = await firebase.firestore().collection(Constants.COLL_PROFILES).where("uid", "==", uid).get();
+        let user;
+        let docId;
+        userSnapshot.forEach((doc)=>{
+            user=doc.data();
+            docId = doc.id
+        })
+
+        const coll = firebase.firestore().collection(Constants.COLL_PROFILES).doc(docId).collection(Constants.COLL_NOTIFICATIONS);
+        let notifications = [];
+        const snapshot = await coll.orderBy("time").get();
+        snapshot.forEach(doc => {
+            notifications.push({ id: doc.id, data: doc.data() });
+        });
+        user.notifications = notifications;
+        req.userProfile = user;
+        return next();
+    }catch(e){
+        console.log("Error - getUserProfile: ", e);
     }
 }
 

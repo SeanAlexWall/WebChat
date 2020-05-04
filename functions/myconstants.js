@@ -3,5 +3,6 @@ module.exports = {
     COLL_MESSAGES: 'messages',
     COLL_ROOMS: 'Rooms',
     COLL_USERS: 'users',
-    COLL_PROFILES: 'profiles'
+    COLL_PROFILES: 'profiles',
+    COLL_NOTIFICATIONS: 'notifications'
 };

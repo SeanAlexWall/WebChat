@@ -1,27 +1,47 @@
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <span class="border border-white  rounded">
-      <a class="navbar-brand" href="/web" style="margin:auto; padding: 10px">WebChat</a>
-    </span>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav">
-        <!-- PUT OTHER OPTIONS HERE -->
-        <li class="nav-item ">
-            <a class="nav-link" href="/web/rooms/user_rooms">Your Rooms</a>
-        </li>
-        <li class="nav-item ">
-            <a class="nav-link" href="/web/rooms/all">Discover Rooms</a>
-        </li>
-        <li class="nav-item ">
-            <a class="nav-link" href="/web/profile">Profile</a>
-        </li>
-        <li class="nav-item ">
-            <a class="nav-link" href="/web/signOut">Sign Out</a>
-        </li>
-      </ul>
-    </div>
+  <span class="border border-white  rounded">
+    <a class="navbar-brand" href="/web" style="margin:auto; padding: 10px">WebChat</a>
+  </span>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
+    aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <!-- PUT OTHER OPTIONS HERE -->
+      <li class="nav-item ">
+        <a class="nav-link" href="/web/rooms/user_rooms">Your Rooms</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="/web/rooms/all">Discover Rooms</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="/web/profile">Profile</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="/web/signOut">Sign Out</a>
+      </li>
+      <li class="nav-item">
+        <div class="dropdown">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            Notifications
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <div class="overflow-auto" style="width: 100%; max-height: 200px; margin: auto;">
+              <% for(let n of userProfile.notifications){ %>
+                <% console.log("nav notif: ", n.data); %>
+                <div class="card" style="width: 18rem;">
+                  <div class="card-body">
+                    <h5 class="card-title"><%=n.data.title %></h5>
+                    <p class="card-text"><%=n.data.content %></p>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
 </nav>
