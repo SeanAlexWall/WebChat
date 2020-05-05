@@ -36,6 +36,7 @@ const firebase = require('firebase');
 const session = require('express-session');
 app.use(session({
     secret: 'string.lajhfdlskj',
+    name: '__session',
     saveUninitialized: false,
     resave: false,
     secure: true, //https
@@ -64,12 +65,15 @@ const adminUtil = require('./adminUtil.js')
 app.get('/web/', authAndRedirectSignIn, getUserProfile, (req, res) => {
     console.log('FFFFFFFFFFFFFFFFFFFFF', req.path);
     if(!req.userProfile){
+        res.setHeader('Cache-Control', 'private');
         res.render('setUpProfile', {uid: req.decodedIdToken.user_id, email: req.decodedIdToken.email, error: false})
     }else{
+        res.setHeader('Cache-Control', 'private');
         res.render('home.ejs', { user: req.decodedIdToken, userProfile: req.userProfile })
     }
 });
 app.get('/web/signIn', auth, (req, res) => {
+    res.setHeader('Cache-Control', 'private');
     res.render('signIn.ejs', { error: false, user: req.user });
 })
 app.post('/web/signIn', async (req, res) => {
@@ -87,13 +91,16 @@ app.post('/web/signIn', async (req, res) => {
         console.log('=============', 'idtoken:', req.session.idToken);
 
         if (userRecord.user.email === Constants.SYSADMIN_EMAIL) {
+            res.setHeader('Cache-Control', 'private');
             res.redirect('/admin/sysadmin')
         }
         else {
+            res.setHeader('Cache-Control', 'private');
             res.redirect('/web/');
         }
     } catch (e) {
         console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        res.setHeader('Cache-Control', 'private');
         res.render('signIn.ejs', { error: JSON.stringify(e), user: null })
     }
 })
@@ -103,15 +110,18 @@ app.get('/web/signOut', async (req, res) => {
         if (err) {
             console.log('++++++++++++++++++++++ SESSION.DESTROY ERROR: ', err);
             req.session = null;
+ 
             res.send('Error: sign out session.destroy error')
         }
         else {
+
             res.redirect('/')
         }
     })
 })
 
 app.get('/web/signup', (req, res) => {
+    res.setHeader('Cache-Control', 'private');
     res.render('signup.ejs', { user: null, error: false })
 })
 
@@ -123,8 +133,10 @@ app.post("/web/setProfile", auth, async (req, res) => {
         console.log('in setProfile')
         await firebase.firestore().collection(Constants.COLL_PROFILES).doc().set({ uid, displayName, bio })
         if(req.decodedIdToken){
+            res.setHeader('Cache-Control', 'private');
             res.redirect('/web/');
         }else{
+            res.setHeader('Cache-Control', 'private');
             res.render('signIn.ejs', {user: false, error: 'Account created! Sign in please!'});
         }
     }catch(e){
@@ -144,6 +156,7 @@ app.get('/web/profile', authAndRedirectSignIn, getUserProfile, async (req, res) 
                 user = doc.data();
             })
             console.log(user);
+            res.setHeader('Cache-Control', 'private');
             res.render('profile.ejs', { user, userProfile: req.userProfile })
         }catch(e){
             console.log('ERROR - WEB/PROFILE: ', e);
@@ -161,9 +174,11 @@ app.get('/web/rooms/all', authAndRedirectSignIn, getUserProfile, async (req, res
         snapshot.forEach(doc => {
             rooms.push({ id: doc.id, data: doc.data() });
         });
+        res.setHeader('Cache-Control', 'private');
         res.render("chooseChatRoom.ejs", { user: req.decodedIdToken, error: false, rooms, userProfile: req.userProfile })
     }
     catch (e) {
+        res.setHeader('Cache-Control', 'private');
         res.render("chooseChatRoom.ejs", { user: null, error: e, userProfile: req.userProfile })
     }
 })
@@ -180,9 +195,11 @@ app.post('/web/rooms/create', authAndRedirectSignIn, async (req, res)=>{
             isPrivate = false;
         }
         await firebase.firestore().collection(Constants.COLL_ROOMS).doc().set({ name, modId, isPrivate })
+        res.setHeader('Cache-Control', 'private');
         res.redirect('/web/rooms/all');
     }catch(e){
         console.log("Error: /web/rooms/create: ", e);
+        res.setHeader('Cache-Control', 'private');
         res.send(JSON.stringify(e));
     }
 })
@@ -198,8 +215,10 @@ app.get('/web/rooms/chat', authAndRedirectSignIn, checkIfJoined, getUserProfile,
         snapshot.forEach(doc => {
             messages.push({ id: doc.id, data: doc.data() });
         });
+        res.setHeader('Cache-Control', 'private');
         res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId, isJoined, userProfile: req.userProfile })
     } catch (e) {
+        res.setHeader('Cache-Control', 'private');
         res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId, isJoined: true, userProfile: req.userProfile });
     }
 
@@ -214,6 +233,7 @@ app.post('/web/rooms/chat', authAndRedirectSignIn, getUserProfile, async (req, r
         await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES).doc().set({ email: displayName, content, time: date })
     }
     catch (e) {
+        res.setHeader('Cache-Control', 'private');
         res.send("Error: chatroom: " + e)
     }
     const coll = firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES);
@@ -223,8 +243,10 @@ app.post('/web/rooms/chat', authAndRedirectSignIn, getUserProfile, async (req, r
         snapshot.forEach(doc => {
             messages.push({ id: doc.id, data: doc.data() });
         });
+        res.setHeader('Cache-Control', 'private');
         res.render("chatroom.ejs", { error: false, messages, user: req.decodedIdToken, roomId, isJoined: true, userProfile: req.userProfile })
     } catch (e) {
+        res.setHeader('Cache-Control', 'private');
         res.render("chatroom.ejs", { error: e, user: req.decodedIdToken, roomId, isJoined: true, userProfile: req.userProfile });
     }
 })
@@ -234,7 +256,8 @@ app.get('/web/rooms/join', auth, getUserProfile, async (req, res) => {
         const roomId = req.query.roomId;
         const user_id = req.decodedIdToken.user_id;
         const userProfile = req.userProfile;
-        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_USERS).doc().set({ user_id })
+        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_USERS).doc().set({ user_id, profName: userProfile.displayName})
+        res.setHeader('Cache-Control', 'private');
         res.redirect(`/web/rooms/chat?roomId=${roomId}`)
     }
     catch (e) {
@@ -253,6 +276,7 @@ app.get('/web/rooms/settings', authAndRedirectSignIn, getUserProfile, async(req,
         let userList = [];
 
         if(!room.modId || !(room.modId === user_id)){
+            res.setHeader('Cache-Control', 'private');
             res.send(`<h1> NOT AUTHORIZED </h1>`);
         }
         else{
@@ -262,11 +286,13 @@ app.get('/web/rooms/settings', authAndRedirectSignIn, getUserProfile, async(req,
                 userList.push({ id: doc.id, data: doc.data() });
             });
             room.userList = userList;
+            res.setHeader('Cache-Control', 'private');
             res.render("roomSettings.ejs", {room, userProfile: req.userProfile});
         }
     }
     catch(e){
         console.log("Error - /web/room/settings", e);
+        res.setHeader('Cache-Control', 'private');
         res.send("Error - /web/room/settings" + e);
     }
 })
@@ -281,10 +307,12 @@ app.post('/web/rooms/settings', authAndRedirectSignIn, async (req, res)=>{
     }
     try {
         await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).update({ name, isPrivate })
+        res.setHeader('Cache-Control', 'private');
         res.send(`<h1> Changes Saved!<h1>
                 <a href="/web/rooms/chat?roomId=${roomId}">back</a>`)
     }
     catch (e) {
+        res.setHeader('Cache-Control', 'private');
         res.send("Error: settings POST: " + e)
     }
 })
@@ -294,10 +322,11 @@ app.post('/web/rooms/settings', authAndRedirectSignIn, async (req, res)=>{
 //Middleware ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 async function authAndRedirectSignIn(req, res, next) {
     try {
-        const decodedIdToken = await adminUtil.verifyIdToken(req.session.idToken);
-        if (decodedIdToken.uid) {
+        if (req.session.idToken) {
+            const decodedIdToken = await adminUtil.verifyIdToken(req.session.idToken);
             req.decodedIdToken = decodedIdToken;
             console.log('************************* ', decodedIdToken);
+            res.setHeader('Cache-Control', 'private');
             return next()
         }
     }
@@ -305,6 +334,7 @@ async function authAndRedirectSignIn(req, res, next) {
         console.log('====== authandredirect error:', e)
     }
     console.log('============================= no session.idToken')
+    res.setHeader('Cache-Control', 'private');
     return res.redirect('/web/signin')
 }
 async function auth(req, res, next) {
@@ -322,7 +352,8 @@ async function auth(req, res, next) {
     catch (e) {
         req.decodedIdToken = null
     }
-    next();
+    res.setHeader('Cache-Control', 'private');
+    return next();
 }
 
 //only used on the GET /web/rooms/chat
@@ -347,8 +378,10 @@ async function checkIfJoined(req, res, next) {
 
     }catch(e){
         console.log(e);
+        res.setHeader('Cache-Control', 'private');
         res.send(e);
     }
+    res.setHeader('Cache-Control', 'private');
     return next();
 }
 
@@ -375,6 +408,7 @@ async function getUserProfile(req, res, next){
     }catch(e){
         console.log("Error - getUserProfile: ", e);
     }
+    res.setHeader('Cache-Control', 'private');
     return next();
 }
 
@@ -384,6 +418,7 @@ app.post('/admin/signup', (req, res) => {
 })
 
 app.get('/admin/sysadmin', authSysAdmin, (req, res) => {
+    res.setHeader('Cache-Control', 'private');
     res.render('admin/sysadmin.ejs');
 })
 
@@ -397,6 +432,7 @@ app.get('/admin/listusers', authSysAdmin, (req, res) => {
 function authSysAdmin(req, res, next) {
     const user = firebase.auth().currentUser;
     if (!user || !user.email || user.email !== Constants.SYSADMIN_EMAIL) {
+        res.setHeader('Cache-Control', 'private');
         return res.send(`<h1> System Admin Page: Access Denied </h1>`);
     }
     else {

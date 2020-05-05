@@ -17,8 +17,10 @@ async function createUser(req, res){
         await admin.auth().createUser({email, password})
         const user = await admin.auth().getUserByEmail(email);
         const uid = user.uid;
+        res.setHeader('Cache-Control', 'private');
         res.render('setUpProfile', {uid, email, error: false})
     }catch(e){
+        res.setHeader('Cache-Control', 'private');
         res.render('signup.ejs', {user: false, error: e});
     }
 
@@ -26,8 +28,10 @@ async function createUser(req, res){
 async function listUsers(req, res){
     try{
         const userRecord = await admin.auth().listUsers()
+        res.setHeader('Cache-Control', 'private');
         res.render('admin/listusers.ejs', {users: userRecord.users, error: false, cartCount: 0})
     }catch(e){
+        res.setHeader('Cache-Control', 'private');
         res.render('admin/listusers.ejs', {users: null, error: e, cartCount: 0})
 
     }
