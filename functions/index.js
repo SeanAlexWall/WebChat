@@ -208,10 +208,10 @@ app.get('/web/rooms/chat', authAndRedirectSignIn, checkIfJoined, getUserProfile,
 app.post('/web/rooms/chat', authAndRedirectSignIn, getUserProfile, async (req, res) => {
     let roomId = req.body.roomId;
     try {
-        const email = req.decodedIdToken.email;
+        const displayName = req.userProfile.displayName;
         const content = req.body.content;
         const date = new Date();
-        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES).doc().set({ email, content, time: date })
+        await firebase.firestore().collection(Constants.COLL_ROOMS).doc(roomId).collection(Constants.COLL_MESSAGES).doc().set({ email: displayName, content, time: date })
     }
     catch (e) {
         res.send("Error: chatroom: " + e)
@@ -344,11 +344,12 @@ async function checkIfJoined(req, res, next) {
             }
         }
         req.isJoined = isJoined;
-        return next();
+
     }catch(e){
         console.log(e);
         res.send(e);
     }
+    return next();
 }
 
 async function getUserProfile(req, res, next){
@@ -370,10 +371,11 @@ async function getUserProfile(req, res, next){
         });
         user.notifications = notifications;
         req.userProfile = user;
-        return next();
+
     }catch(e){
         console.log("Error - getUserProfile: ", e);
     }
+    return next();
 }
 
 //Admin api

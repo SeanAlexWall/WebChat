@@ -53,11 +53,7 @@
 
             <% } else { %>
             <% for(let m of messages) { %>
-            <% if(m.data.email == user.email){ %>
-            <span class="badge badge-pill badge-primary"><%= m.data.email %> :</span>
-            <% } else {%>
-            <span class="badge badge-pill badge-success"><%= m.data.email %> :</span>
-            <% } %>
+                <span class="badge badge-pill badge-primary"><%= m.data.email %> :</span>
             <%= m.data.content %>
             <br>
             <% } %>
