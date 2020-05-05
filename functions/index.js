@@ -352,7 +352,6 @@ async function auth(req, res, next) {
     catch (e) {
         req.decodedIdToken = null
     }
-    res.setHeader('Cache-Control', 'private');
     return next();
 }
 
@@ -381,7 +380,6 @@ async function checkIfJoined(req, res, next) {
         res.setHeader('Cache-Control', 'private');
         res.send(e);
     }
-    res.setHeader('Cache-Control', 'private');
     return next();
 }
 
@@ -408,7 +406,6 @@ async function getUserProfile(req, res, next){
     }catch(e){
         console.log("Error - getUserProfile: ", e);
     }
-    res.setHeader('Cache-Control', 'private');
     return next();
 }
 
