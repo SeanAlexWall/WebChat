@@ -21,8 +21,11 @@
 
             <% } else { %>
                 <% for(let r of rooms) { %>  
-                    <A href="/web/rooms/chat?roomId=<%=r.id%>" class="btn btn-primary"> <%= r.data.name %> </A>
-                    <br><br>
+                        <A href="/web/rooms/chat?roomId=<%=r.id%>" class="btn btn-primary"> <%= r.data.name %> </A>
+                        <% if(r.data.isPrivate) { %>
+                            <span class="badge badge-success">Private</span>
+                        <% } %>
+                        <br><br>
                 <% } %>
             <% } %>
         </div>
@@ -49,6 +52,10 @@
                     <p style="color: red"><%= error %></p>
                 <% } %>
                 <input type="text" class="form-control" name="name" placeholder="Room Name">
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" name="privateCheck" value="true">
+                    <label class="form-check-label" for="privateCheck">Private</label>
+                </div>  
             </div>
             <div class="modal-footer">
             <button type="submit" class="btn btn-primary" >Create</button>

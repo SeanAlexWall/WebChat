@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <%- include('partials/header.ejs') %>
+    <title>Home</title>
+</head>
+
+<body>
+    <%- include('partials/nav.ejs', {userProfile}) %>
+
+    <form class="form-chat" action="/web/rooms/settings" method="POST">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" class="form-control" name="name" value="<%=room.name%>"  >
+        </div>
+        
+        <div class="form-group form-check">
+            <% if(room.isPrivate){ %>
+                <input type="checkbox" class="form-check-input" name="privateCheck" checked>
+            <% } else {%>
+                <input type="checkbox" class="form-check-input" name="privateCheck" >
+            <% } %>
+            <input type="hidden" name="roomId" value="<%=room.roomId%>">
+            <label class="form-check-label" for="privateCheck">Private</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+    <hr>
+    <ul>
+        Users:
+    <% for(let user of room.userList){ %>
+        <li>
+            <%=user.data.profName%> | <a href="" class="btn btn-warning">Kick</a> | <a href="" class="btn btn-danger">Ban</a>
+        </li>
+    <% } %>
+    </ul>
+</body>
+
+</html>
